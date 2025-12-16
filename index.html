@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fortnite Information</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      text-align: center;
+      padding: 40px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    #output {
+      margin-top: 30px;
+      background: #020617;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      min-width: 260px;
+    }
+  </style>
+ <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fortnite Information</title></head>
+
+<body>
+
+  <h1>Fortnite Information</h1>
+
+  <input id="player" placeholder="Nombre Epic">
+  <button id="btn">Buscar</button>
+
+  <div id="output"></div>
+
+  <script>
+    document.getElementById("btn").addEventListener("click", buscar);
+
+    async function buscar() {
+      const nombre = document.getElementById("player").value.trim();
+      const output = document.getElementById("output");
+
+      if (!nombre) {
+        output.textContent = "Escribí un nombre.";
+        return;
+      }
+
+      output.textContent = "Buscando stats...";
+
+      try {
+        const res = await fetch(
+          "https://fortnite-api.com/v2/stats/br/v2?name=" +
+          encodeURIComponent(nombre) +
+          "&accountType=epic",
+          {
+            headers: {
+              "Authorization": "7f1bd4e0-2629-4d56-b8b9-be95970bf415"
+            }
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.status === 403) {
+          output.textContent = "Stats privadas para este jugador.";
+          return;
+        }
+
+        if (data.status !== 200) {
+          output.textContent = "Jugador no encontrado.";
+          return;
+        }
+
+        const o = data.data.stats.all.overall;
+
+        // Tiempo jugado seguro
+        let tiempoTexto = "0 minutos";
+        if (typeof o.minutesPlayed === "number") {
+          if (o.minutesPlayed >= 60) {
+            tiempoTexto = (o.minutesPlayed / 60).toFixed(1) + " horas";
+          } else {
+            tiempoTexto = o.minutesPlayed + " minutos";
+          }
+        }
+
+        output.innerHTML = `
+          <h2>${nombre}</h2>
+          <p>🏆 Victorias: ${o.wins}</p>
+          <p>💀 Kills: ${o.kills}</p>
+          <p>🎯 K/D: ${o.kd}</p>
+          <p>📊 Partidas: ${o.matches}</p>
+          <p>⏱️ Tiempo jugado: ${tiempoTexto}</p>
+        `;
+
+      } catch (e) {
+        console.error(e);
+        output.textContent = "Error de conexión.";
+      }
+    }
+  </script>
+
+</body>
+</html>
+
